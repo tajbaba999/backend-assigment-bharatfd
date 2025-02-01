@@ -16,9 +16,9 @@ A multilingual FAQ management system with automatic translation support, built w
 - **Backend**: Node.js, Express
 - **Database**: PostgreSQL (using Prisma ORM)
 - **Cache**: Redis
-- **Frontend**: React (for admin panel)
+- **Frontend**: HTML
 - **Translation**: Google Translate API
-- **Testing**: Mocha, Chai
+- **Testing**: Jest
 - **Containerization**: Docker
 
 ## Prerequisites
