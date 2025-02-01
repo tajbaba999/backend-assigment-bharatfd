@@ -1,14 +1,15 @@
-const languages = [
+const indianLanguages = [
   "hi", // Hindi
   "bn", // Bengali
-  "es", // Spanish
-  "fr", // French
-  "de", // German
-  "zh", // Chinese
-  "ar", // Arabic
-  "ru", // Russian
-  "ja", // Japanese
-  "pt", // Portuguese
+  "te", // Telugu
+  "mr", // Marathi
+  "ta", // Tamil
+  "gu", // Gujarati
+  "ur", // Urdu
+  "kn", // Kannada
+  "or", // Odia
+  "ml", // Malayalam
+  "pa", // Punjabi
 ];
 
-export default languages;
+export default indianLanguages;
