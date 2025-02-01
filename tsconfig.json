@@ -10,7 +10,12 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.test.ts"],
-  
+  "include": [
+    "src",
+    "src/types"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts"
+  ],
 }

@@ -4,9 +4,12 @@ const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
-redisClient.connect()
-  .then(() => console.log('✅ Redis connection established'))
-  .catch(err => console.error("❌ Redis connection error:", err));
+// Mock the connection in tests
+if (process.env.NODE_ENV !== 'test') {
+  redisClient.connect()
+    .then(() => console.log('✅ Redis connection established'))
+    .catch(err => console.error("❌ Redis connection error:", err));
+}
 
 redisClient.on("error", (err) => console.error("Redis error:", err));
 
