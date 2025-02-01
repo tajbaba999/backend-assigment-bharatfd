@@ -1,14 +1,15 @@
 import { createClient } from "redis";
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
+  url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
 // Mock the connection in tests
-if (process.env.NODE_ENV !== 'test') {
-  redisClient.connect()
-    .then(() => console.log('✅ Redis connection established'))
-    .catch(err => console.error("❌ Redis connection error:", err));
+if (process.env.NODE_ENV !== "test") {
+  redisClient
+    .connect()
+    .then(() => console.log("✅ Redis connection established"))
+    .catch((err) => console.error("❌ Redis connection error:", err));
 }
 
 redisClient.on("error", (err) => console.error("Redis error:", err));
@@ -19,6 +20,6 @@ export const cacheService = {
   },
 
   async setCache(key: string, value: string) {
-    await redisClient.set(key, value, { EX:3600  });
+    await redisClient.set(key, value, { EX: 3600 });
   },
 };
