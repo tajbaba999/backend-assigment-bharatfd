@@ -20,39 +20,48 @@ async function translateText(text: string, targetLang: string) {
 export const getFAQ = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const lang = (req.params.lang as string) || "en";
+    const lang = (req.query.lang as string) || "en";
 
-    const cacheKey = `faq-${id}-${lang}`;
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ error: "Invalid FAQ ID" });
+    }
+
+    const faqId = Number(id);
+    const cacheKey = `faq-${faqId}-${lang}`;
+
     const cachedFAQ = await cacheService.getCache(cacheKey);
     if (cachedFAQ) {
       return res.json(JSON.parse(cachedFAQ));
     }
+
     const faq = await prisma.fAQ.findUnique({
-      where: { id: Number(id) },
+      where: { id: faqId },
       include: {
-        translations: {
-          where: { language: lang },
-        },
+        translations: true,
       },
     });
 
-    if (!faq) return res.status(404).json({ error: "FAQ not found" });
+    if (!faq) {
+      return res.status(404).json({ error: "FAQ not found" });
+    }
 
     let result;
 
     if (lang === "en") {
       result = faq;
     } else {
-      if (faq.translations && faq.translations.length > 0) {
+      const translation = faq.translations.find((t) => t.language === lang);
+      if (translation) {
         result = {
           id: faq.id,
-          question: faq.translations[0].question,
-          answer: faq.translations[0].answer,
+          question: translation.question,
+          answer: translation.answer,
         };
       } else {
         const translatedQuestion = await translateText(faq.question, lang);
         const translatedAnswer = await translateText(faq.answer, lang);
-        const translation = await prisma.fAQTranslation.create({
+
+        await prisma.fAQTranslation.create({
           data: {
             faqId: faq.id,
             language: lang,
@@ -63,14 +72,16 @@ export const getFAQ = async (req: Request, res: Response) => {
 
         result = {
           id: faq.id,
-          question: translation.question,
-          answer: translation.answer,
+          question: translatedQuestion,
+          answer: translatedAnswer,
         };
       }
     }
+
     await cacheService.setCache(cacheKey, JSON.stringify(result));
     res.json(result);
   } catch (error) {
+    console.error("Error fetching FAQ:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -78,7 +89,7 @@ export const getFAQ = async (req: Request, res: Response) => {
 // Get all FAQs with translation for a specific language
 export const getAllFAQs = async (req: Request, res: Response) => {
   try {
-    const lang = (req.params.lang as string) || "en";
+    const lang = (req.query.lang as string) || "en";
 
     const cacheKey = `all-faqs-${lang}`;
     const cachedFAQs = await cacheService.getCache(cacheKey);
@@ -96,9 +107,46 @@ export const getAllFAQs = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "No FAQs found" });
     }
 
-    await cacheService.setCache(cacheKey, JSON.stringify(faqs));
+    // Process each FAQ to return the correct language version
+    const translatedFAQs = await Promise.all(
+      faqs.map(async (faq) => {
+        if (lang === "en") {
+          return faq; // Return as-is for English
+        }
 
-    res.json(faqs);
+        const translation = faq.translations.find((t) => t.language === lang);
+        if (translation) {
+          return {
+            id: faq.id,
+            question: translation.question,
+            answer: translation.answer,
+          };
+        }
+
+        // If translation is missing, generate and store it
+        const translatedQuestion = await translateText(faq.question, lang);
+        const translatedAnswer = await translateText(faq.answer, lang);
+
+        await prisma.fAQTranslation.create({
+          data: {
+            faqId: faq.id,
+            language: lang,
+            question: translatedQuestion,
+            answer: translatedAnswer,
+          },
+        });
+
+        return {
+          id: faq.id,
+          question: translatedQuestion,
+          answer: translatedAnswer,
+        };
+      })
+    );
+
+    await cacheService.setCache(cacheKey, JSON.stringify(translatedFAQs));
+
+    res.json(translatedFAQs);
   } catch (error) {
     console.error("Error fetching FAQs:", error);
     res.status(500).json({ error: "Failed to fetch FAQs" });
