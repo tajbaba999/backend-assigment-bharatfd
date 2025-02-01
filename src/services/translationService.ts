@@ -1,23 +1,16 @@
-import translate from "@vitalets/google-translate-api";
-import { cacheGet, cacheSet } from "./cacheService";
+import { translate } from "@vitalets/google-translate-api";
+import { cacheService } from "./cacheService";
 
-export async function translateText(
-  text: string,
-  targetLang: string
-): Promise<string> {
-  const cacheKey = `translation:${targetLang}:${text}`;
-  const cachedTranslation = await cacheGet(cacheKey);
-  if (cachedTranslation) {
-    return cachedTranslation;
-  }
+export const translateText = async (text: string, lang: string) => {
+  const cacheKey = `translation:${lang}:${text}`;
 
-  try {
-    const res = await translate(text, { to: targetLang });
-    const translated = res.text;
-    await cacheSet(cacheKey, translated, 3600);
-    return translated;
-  } catch (err) {
-    console.error("Translation error:", err);
-    throw new Error("Translation failed");
-  }
-}
+  // Check cache first
+  const cachedTranslation = await cacheService.getCache(cacheKey);
+  if (cachedTranslation) return cachedTranslation;
+
+  // Perform translation
+  const translated = await translate(text, { to: lang });
+  await cacheService.setCache(cacheKey, translated.text);
+
+  return translated.text;
+};
