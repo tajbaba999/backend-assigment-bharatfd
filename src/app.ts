@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import faqRoutes from "./routes/faqRoutes";
+import "./services/cacheService";
 
 const app = express();
 
