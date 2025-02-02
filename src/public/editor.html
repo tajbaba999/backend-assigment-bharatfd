@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>Edit FAQ</title>
@@ -94,7 +94,6 @@
         },
       });
 
-      // Function to load existing FAQ data
       async function loadFAQ(faqId) {
         const response = await fetch(`/api/faqs/${faqId}`);
         const data = await response.json();
