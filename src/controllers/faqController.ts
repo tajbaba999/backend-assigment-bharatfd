@@ -16,7 +16,6 @@ async function translateText(text: string, targetLang: string) {
   return translation;
 }
 
-// Get FAQ by ID with translation
 export const getFAQ = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -86,7 +85,6 @@ export const getFAQ = async (req: Request, res: Response) => {
   }
 };
 
-// Get all FAQs with translation for a specific language
 export const getAllFAQs = async (req: Request, res: Response) => {
   try {
     const lang = (req.query.lang as string) || "en";
@@ -107,11 +105,10 @@ export const getAllFAQs = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "No FAQs found" });
     }
 
-    // Process each FAQ to return the correct language version
     const translatedFAQs = await Promise.all(
       faqs.map(async (faq) => {
         if (lang === "en") {
-          return faq; // Return as-is for English
+          return faq;
         }
 
         const translation = faq.translations.find((t) => t.language === lang);
@@ -123,7 +120,6 @@ export const getAllFAQs = async (req: Request, res: Response) => {
           };
         }
 
-        // If translation is missing, generate and store it
         const translatedQuestion = await translateText(faq.question, lang);
         const translatedAnswer = await translateText(faq.answer, lang);
 
@@ -153,7 +149,6 @@ export const getAllFAQs = async (req: Request, res: Response) => {
   }
 };
 
-// Create FAQ with all translations immediately
 export const createFAQ = async (req: Request, res: Response) => {
   try {
     const { question, answer } = req.body;
